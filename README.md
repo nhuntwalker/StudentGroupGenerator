@@ -1,5 +1,7 @@
 # StudentGroupGenerator
 
+[![Build Status](https://travis-ci.org/nhuntwalker/StudentGroupGenerator.svg?branch=master)](https://travis-ci.org/nhuntwalker/StudentGroupGenerator)
+
 `StudentGroupGenerator` will shuffle a given student list and create groups of varying sizes (individuals, pairs, or triplets). 
 It can be run either from the command line or from the interpreter/Jupyter Notebook.
 
