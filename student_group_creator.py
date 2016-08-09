@@ -154,7 +154,7 @@ def shuffle_and_group_names(name_list, params):
             for i in range(0, item):
                 temp_group = name_list[0:num]
                 group_container.append(temp_group)
-                name_list.__delslice__(0, num)
+                name_list = name_list[num:]
         num += 1
 
     return group_container
