@@ -7,9 +7,12 @@ import webbrowser
 
 
 def show_students(groups):
-    """Make student pictures display in their groups in an IPython notebook
+    """Display a list of student groups.
+
+    Make student pictures display in their groups in an IPython notebook
     NB: requires that image file names are the same as student names in the
-    input list"""
+    input list.
+    """
     photo_dir = './photodir/'
     # take each group list and parse student names into image file names
     # (strip space, add .jpg)
@@ -33,8 +36,9 @@ def show_students(groups):
         # display each group member's image with their name
         preformat_html_tags = ["<figure>"]
         postformat_html_tags = ["</figure>"]
-        image_sources = [
-            "<img style='width: 200px; border: 1px solid black;' src='%s' />" % str(s) for s in list_of_image_names]
+        img_fmt = "<img style='width: 200px; "
+        img_fmt += "border: 1px solid black;' src='%s' />"
+        image_sources = [img_fmt % str(s) for s in list_of_image_names]
         pre_captions_tag = ["<figcaption><h1>"]
         caption_mid = [caption_names]
         post_captions_tag = ["</figcaption>"]
@@ -47,18 +51,32 @@ def show_students(groups):
 
 
 def show_students_in_browser(groups):
-    """Make student pictures display in their groups in a local browser window
-    NB: requires that image file names are the same as student names in the input list
-    default browser is chrome, preferred browser can be set by altering the
-    below."""
+    """Export list of student names and potentially images to a browser.
+
+    Make student pictures display in their groups in a local browser window
+    NB: requires that image file names are the same as student names in the
+    input list default browser is chrome, preferred browser can be set by
+    altering the below.
+    """
     browser_path = 'open -a /Applications/Google\ Chrome.app %s'
     photo_dir = './photodir/'
     outfile = open("groups.html", "w")
 
     # create html to go before and after code generated for student groups
-    html_preamble = "<!DOCTYPE html><html><head><style>table {    font-family: arial, sans-serif;    border-collapse: collapse; } td, th {    border: 1px solid #dddddd;    text-align: center;    padding: 0px;} tr:nth-child(even) {    background-color: #dddddd;}</style></head><body><table>"
+    html_head = "<!DOCTYPE html><html><head>"
+    style = [
+        "<style>table {font-family: arial, sans-serif; ",
+        "border-collapse: collapse;} ",
+        "td, th {border: 1px solid #dddddd; ",
+        "text-align: center; padding: 0px;} ",
+        "tr:nth-child(even) {background-color: #dddddd;}",
+        "</style>"
+    ]
+    style = "".join(style)
+    html_head_end = "</head><body><table>"
     html_closing = "</table></body></html>"
 
+    html_preamble = html_head + style + html_head_end
     # take each group list and parse student names into image file names
     # (strip space, add .jpg)
     outfile.write(html_preamble)
@@ -80,8 +98,9 @@ def show_students_in_browser(groups):
         preformat_html_tags = ["<tr>"]
         postformat_html_tags = ["</tr>"]
         linebreak = ["</tr><tr>"]
-        image_sources = [
-            "<td><img style='width: 200px; border: 1px solid black;' src='%s' /><td>" % str(s) for s in list_of_image_names]
+        img_td_fmt = "<td><img style='width: 200px; border: 1px solid black;' "
+        img_td_fmt += "src='%s' /><td>"
+        image_sources = [img_td_fmt % str(s) for s in list_of_image_names]
         caption_sources = ["<td><h1> %s </h1><td>" %
                            str(s) for s in caption_names]
         full_img_display_tags = preformat_html_tags + image_sources + \
@@ -98,9 +117,13 @@ def show_students_in_browser(groups):
 
 
 def name_counter(pars):
-    """Parameters consists of numbers to indicate how many groups of each size should be created.
+    """Return the total count of students expected from group numbers.
+
+    Parameters consists of numbers to indicate how many groups of each size
+    should be created.
     e.g. [0,8,1] will result in no students in individual groups, 8 pairs of
-    students, and 1 group of 3."""
+    students, and 1 group of 3.
+    """
     total_names = 0
     i = 0
     for item in pars:
@@ -110,41 +133,50 @@ def name_counter(pars):
 
 
 def get_name_list(student_file):
-    """Read in student names from a file."""
+    """Read in student names from a file.
+
+    Given a file that lists student names, produce Python list of student
+    names.
+    """
     student_names = [line.rstrip() for line in open(student_file)]
 
     return student_names
 
 
+def shuffle_and_group_names(name_list, params):
+    """Shuffle a list of names and group as desired."""
+    group_container = []
+    random.shuffle(name_list)
+    i = 0
+    num = 1
+    for item in params:
+        if (item != 0):
+            for i in range(0, item):
+                temp_group = name_list[0:num]
+                group_container.append(temp_group)
+                name_list.__delslice__(0, num)
+        num += 1
+
+    return group_container
+
+
 def create_groups(student_file, parameters):
     """Create groups of students from a text file of student names."""
-    list_of_groups = []
-
-    # read in student names from a file
     student_names = get_name_list(student_file)
-
-    # return error if number of students in groups != total number students
     total = name_counter(parameters)
 
     if total != len(student_names):
         num_students = len(student_names)
-        print('There are ' + str(num_students) +
-              ' students in total. The total number of students included in groups not equal to total number of students! Check input pars.')
-    else:
-        # shuffle student names and assemble into groups
-        random.shuffle(student_names)
-        i = 0
-        curr_index = 0
-        num = 1
-        for item in parameters:
-            if (item != 0):
-                for i in range(0, item):
-                    temp_group = student_names[0:num]
-                    list_of_groups.append(temp_group)
-                    student_names.__delslice__(0, num)
-            num += 1
+        output_msg = "There are %i students in total. " % num_students
+        output_msg += "The total number of students included in groups does "
+        output_msg += "not equal total number of students! Check input pars."
 
+        print(output_msg)
+        return []
+
+    list_of_groups = shuffle_and_group_names(student_names, parameters)
     return list_of_groups
+
 
 if __name__ == "__main__":
     import sys
